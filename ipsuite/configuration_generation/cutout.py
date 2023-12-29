@@ -15,9 +15,9 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
 
     def __post_init__(self):
         self.structure = self.get_data()
+        np.random.seed(self.seed)
         if self.central_atom_index is None:
             self.central_atom_index = np.random.randint(len(self.structure))
-        np.random.seed(self.seed)
 
     def _center_wrap(self, structure: Atoms, atom_index: int):
         v = np.array([0.5, 0.5, 0.5]) - structure.get_scaled_positions()[atom_index]
@@ -25,7 +25,7 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         structure.wrap()
         return structure
     
-    def _molecule_coord_correction(molecule: Atoms, structure: Atoms, atom_index: int):
+    def _molecule_coord_correction(self, molecule: Atoms, structure: Atoms, atom_index: int):
 
         distances = np.linalg.norm(
             molecule.get_scaled_positions() - structure.get_scaled_positions()[atom_index],
@@ -39,7 +39,7 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         return molecule
 
 
-    def _merge(mol_list, structure: Atoms, atom_index: int):
+    def _merge(self, mol_list, structure: Atoms, atom_index: int):
 
         new_structure = []
 
@@ -51,8 +51,8 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         return Atoms(new_structure)
 
     def _cut(self):
+        self.structure = self._center_wrap(self.structure, self.central_atom_index)
         mol_list = ase.build.separate(self.structure)
-        soft = []
         cutout_molecules = []
 
         for molecule in mol_list:
@@ -64,6 +64,8 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         soft = self._merge(cutout_molecules, self.structure, self.central_atom_index)
 
         return soft
+    
+    def _cell_opt(self, )
 
 
     def run(self):
