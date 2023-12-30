@@ -4,6 +4,7 @@ import ase.units
 import ase
 import numpy as np
 import zntrack
+from scipy.optimize import minimize
 
 
 class CutoutsFromStructures(ips.base.ProcessSingleAtom):
@@ -12,6 +13,8 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
     central_atom_index: int = zntrack.params(None)
     r_cutoff: float = zntrack.params()
     seed: int = zntrack.params(1)
+    threshold: float = zntrack.params(1.8)
+    cell_opt_type: str = zntrack.params('cubic')
 
     def __post_init__(self):
         self.structure = self.get_data()
@@ -65,9 +68,43 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
 
         return soft
     
+    def _function_to_optimize(self, cell_param):
+
+        if len(cell_param) == 1:
+            cell_param = np.array([cell_param[0], cell_param[0], cell_param[0]])
+
+        self.structure.set_cell(cell_param)
+        self.structure.set_pbc([True, True, True])
+        self.structure.center()
+        
+        distances = []
+        for i, atom in enumerate(self.structure):
+            distances.append(self.structure.get_distances(i, [j for j in range(len(self.structure))], mic=True))
+        
+        distances = np.array(distances)
+
+        result = np.sum(np.maximum([0], np.subtract(self.threshold, distances)))
+
+        return result
     
-    def _cell_opt(self):
-        pass
+    def _initial_cell(self):
+        
+        min = np.min(self.structure.get_positions(), axis=0)
+        max = np.max(self.structure.get_positions(), axis=0)
+        tetragonal = max - min
+        cubic = np.max(tetragonal)
+
+        return tetragonal, cubic
+
+    def _optimize_cubic_cell(self):
+
+        opt = minimize(self._function_to_optimize, self._initial_cell()[1], tol=1e-2)
+        return np.array([opt.get("x")[0], opt.get("x")[0], opt.get("x")[0]])
+    
+    def _optimize_tetragonal_cell(self):
+        
+        opt = minimize(self._function_to_optimize, self._initial_cell()[0], tol=1e-2)
+        return opt.get("x")
 
 
     def run(self):
