@@ -65,7 +65,9 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
 
         return soft
     
-    def _cell_opt(self, )
+    
+    def _cell_opt(self):
+        pass
 
 
     def run(self):
