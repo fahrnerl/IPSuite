@@ -9,12 +9,34 @@ from scipy.optimize import minimize
 
 class CutoutsFromStructures(ips.base.ProcessSingleAtom):
 
-    structure = zntrack.params(None)
+    """
+    Node for performing spheric cutout of a system while
+    keeping molecules intact followed by a basic cell optimization.
+
+    Attributes
+    ----------
+    structure: Atoms
+        System from which cutout is performed.
+    central_atom_index: int
+        Index of atom that is the center of the spheric cutout.
+    r_cutoff: float
+        Radius of the sphere.
+    seed: int
+        Seed value.
+    threshhold: float
+        Minimal distance(mic) for cell optimization.
+    cell_opt_type: str
+        Method for cell optimization. Either cubic or tetragonal.
+    """
+
+    structure: Atoms = zntrack.params(None)
     central_atom_index: int = zntrack.params(None)
     r_cutoff: float = zntrack.params()
     seed: int = zntrack.params(1)
     threshold: float = zntrack.params(1.8)
     cell_opt_type: str = zntrack.params('cubic')
+
+    cutout: Atoms = zntrack.outs()
 
     def __post_init__(self):
         self.structure = self.get_data()
@@ -108,7 +130,13 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
 
 
     def run(self):
-        pass
+        self.cutout = self._cut()
+
+        if self.cell_opt_type is 'cubic':
+            self.cutout.set_cell(self._optimize_cubic_cell)
+
+        elif self.cell_opt_type is 'tetragonal':
+            self.cutout.set_cell(self._optimize_tetragonal_cell)
 
         
 
