@@ -99,11 +99,7 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         self.structure.set_pbc([True, True, True])
         self.structure.center()
         
-        distances = []
-        for i, atom in enumerate(self.structure):
-            distances.append(self.structure.get_all_distances(mic=True))
-        
-        distances = np.array(distances)
+        distances = self.structure.get_all_distances(mic=True)
 
         result = np.sum(np.maximum([0], np.subtract(self.threshold, distances)))
 
