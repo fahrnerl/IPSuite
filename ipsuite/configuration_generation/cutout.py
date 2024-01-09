@@ -101,7 +101,7 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         
         distances = []
         for i, atom in enumerate(self.structure):
-            distances.append(self.structure.get_distances(i, [j for j in range(len(self.structure))], mic=True))
+            distances.append(self.structure.get_all_distances(mic=True))
         
         distances = np.array(distances)
 
