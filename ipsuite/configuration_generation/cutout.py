@@ -134,9 +134,11 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
 
         if self.cell_opt_type == 'cubic':
             self.cutout.set_cell(self._optimize_cubic_cell())
+            self.cutout.set_pbc([True, True, True])
 
         elif self.cell_opt_type == 'tetragonal':
             self.cutout.set_cell(self._optimize_tetragonal_cell())
+            self.cutout.set_pbc([True, True, True])
 
         else:
             raise NotImplementedError("string has to be 'cubic' or 'tetragonal'")
