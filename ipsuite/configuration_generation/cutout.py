@@ -86,9 +86,9 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
                     cutout_molecules.append(molecule)
                     break
 
-        soft = self._merge(cutout_molecules, self.structure, self.central_atom_index)
+        self.structure = self._merge(cutout_molecules, self.structure, self.central_atom_index)
 
-        return soft
+        return self.structure
     
     def _function_to_optimize(self, cell_param):
 
@@ -101,7 +101,7 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         
         distances = self.structure.get_all_distances(mic=True)
 
-        result = np.sum(np.maximum([0], np.subtract(self.threshold, distances)))
+        result = np.sum(np.maximum([0], self.threshold - distances))
 
         return result
     
@@ -109,7 +109,7 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         
         min = np.min(self.structure.get_positions(), axis=0)
         max = np.max(self.structure.get_positions(), axis=0)
-        tetragonal = max - min
+        tetragonal = (max - min)/2
         cubic = np.max(tetragonal)
 
         return tetragonal, cubic
