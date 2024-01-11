@@ -139,6 +139,7 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         else:
             raise NotImplementedError("string has to be 'cubic' or 'tetragonal'")
         
+        self.cutout.center()
         self.atoms = [self.cutout]
 
         
