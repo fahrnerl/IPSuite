@@ -311,7 +311,6 @@ class CutoutsFromStructures(ips.ProcessAtoms):
                 # opt = minimize(tetragonal_function_to_optimize, initial_cell(cutout)[0], (cutout, self.threshold), tol=1e-2)
                 # cutout.set_cell(opt.get("x")[0])
                 # cutout.set_pbc([True, True, True])
-
                 raise NotImplementedError("tetragonal optimization needs rework")
 
             else:
