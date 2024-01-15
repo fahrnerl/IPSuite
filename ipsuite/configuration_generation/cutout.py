@@ -7,7 +7,7 @@ import zntrack
 from scipy.optimize import minimize
 
 
-class CutoutsFromStructures(ips.base.ProcessSingleAtom):
+class CutoutFromStructure(ips.base.ProcessSingleAtom):
 
     """
     Node for performing spheric cutout of a system while
@@ -31,7 +31,7 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
 
     structure: Atoms = zntrack.params(None)
     central_atom_index: int = zntrack.params(None)
-    r_cutoff: float = zntrack.params()
+    r_cutoff: float = zntrack.params(8.)
     seed: int = zntrack.params(1)
     threshold: float = zntrack.params(1.8)
     cell_opt_type: str = zntrack.params('cubic')
@@ -141,6 +141,66 @@ class CutoutsFromStructures(ips.base.ProcessSingleAtom):
         
         self.cutout.center()
         self.atoms = [self.cutout]
+
+def center_wrap(structure: ase.Atoms, atom_index: int):
+
+    v = np.array([0.5, 0.5, 0.5]) - structure.get_scaled_positions()[atom_index]
+    structure.set_scaled_positions(structure.get_scaled_positions() + v)
+    structure.wrap()
+    return structure
+
+def molecule_coord_correction(molecule: ase.Atoms, structure: ase.Atoms, atom_index: int):
+
+    distances = np.linalg.norm(
+        molecule.get_scaled_positions() - structure.get_scaled_positions()[atom_index],
+        axis=1
+    )
+    min_index = np.argmin(distances)
+    v = np.array([0.5, 0.5, 0.5]) - molecule.get_scaled_positions()[min_index]
+    molecule = center_wrap(molecule, min_index)
+    molecule.set_scaled_positions(molecule.get_scaled_positions() - v)
+
+    return molecule
+
+def merge(mol_list: list[ase.Atoms], structure: ase.Atoms, atom_index: int):
+
+    new_structure = []
+
+    for molecule in mol_list:
+        molecule = molecule_coord_correction(molecule, structure, atom_index)
+        for atom in molecule:
+            new_structure.append(atom)
+
+    return Atoms(new_structure)
+
+def cut(structure, central_atom_index, r_cutoff):
+    structure = center_wrap(structure, central_atom_index)
+    mol_list = ase.build.separate(structure)
+    cutout_molecules = []
+
+    for molecule in mol_list:
+        for atom in molecule:
+            if np.linalg.norm(atom.position - structure[central_atom_index].position) <= r_cutoff:
+                cutout_molecules.append(molecule)
+                break
+
+    structure = merge(cutout_molecules, structure, central_atom_index)
+
+    return structure
+
+class CutoutsFromStructures(ips.ProcessAtoms):
+
+    central_atom_indices: list[int] = zntrack.params(None)
+    r_cutoff: float = zntrack.params(8.)
+    seed: int = zntrack.params(1)
+    threshold: float = zntrack.params(1.8)
+    cell_opt_type: str = zntrack.params('cubic')
+
+    def __post_init__(self):
+        np.random.seed(self.seed)
+        if self.central_atom_indices is None:
+            self.central_atom_indices = np.random.choice(len(self.get_data()))
+
 
         
 
