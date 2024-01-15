@@ -144,12 +144,24 @@ class CutoutFromStructure(ips.base.ProcessSingleAtom):
 
 def center_wrap(structure: ase.Atoms, atom_index: int):
 
+    """
+    Centers Structure around atom_index
+    and wraps atoms in cell
+    """
+
     v = np.array([0.5, 0.5, 0.5]) - structure.get_scaled_positions()[atom_index]
     structure.set_scaled_positions(structure.get_scaled_positions() + v)
     structure.wrap()
     return structure
 
 def molecule_coord_correction(molecule: ase.Atoms, structure: ase.Atoms, atom_index: int):
+
+    """
+    Unwraps molecules by taking atom
+    nearest to central atom and centering,
+    wraping around it then moving molecule
+    to original position of the atom.
+    """
 
     distances = np.linalg.norm(
         molecule.get_scaled_positions() - structure.get_scaled_positions()[atom_index],
@@ -164,6 +176,11 @@ def molecule_coord_correction(molecule: ase.Atoms, structure: ase.Atoms, atom_in
 
 def merge(mol_list: list[ase.Atoms], structure: ase.Atoms, atom_index: int):
 
+    """
+    Creating atoms object with corrected
+    coordinates from molecule list.
+    """
+
     new_structure = []
 
     for molecule in mol_list:
@@ -174,6 +191,11 @@ def merge(mol_list: list[ase.Atoms], structure: ase.Atoms, atom_index: int):
     return Atoms(new_structure)
 
 def cut(structure: ase.Atoms, central_atom_index: int, r_cutoff: float):
+
+    """
+    Performs cutout aroung central atom index.
+    """
+
     structure = center_wrap(structure, central_atom_index)
     mol_list = ase.build.separate(structure)
     cutout_molecules = []
@@ -189,6 +211,12 @@ def cut(structure: ase.Atoms, central_atom_index: int, r_cutoff: float):
     return structure
 
 def tetragonal_function_to_optimize(structure: ase.Atoms, cell_param: list[float], threshold: float):
+
+    """
+    Function for optimization where threshold
+    defines minimum distance atoms should
+    have to atoms of the neighbouring cells.
+    """
 
     structure.set_cell(cell_param)
     structure.set_pbc([True, True, True])
@@ -208,6 +236,11 @@ def cubic_function_to_optimize(structure: ase.Atoms, cell_param: float, threshol
 
 def initial_cell(structure: ase.Atoms):
     
+    """
+    Returns tetragonal and cubic cell
+    for initial guess of optimizer.
+    """
+
     min = np.min(structure.get_positions(), axis=0)
     max = np.max(structure.get_positions(), axis=0)
     tetragonal = (max - min)/2
@@ -217,22 +250,40 @@ def initial_cell(structure: ase.Atoms):
 
 def optimize_cell(func, starting_cell: list[float]):
 
+    """
+    Optimizes function and returns
+    optimized cell parameters.
+    """
+
     opt = minimize(func, starting_cell, tol=1e-2)
     return opt.get("x")
 
 class CutoutsFromStructures(ips.ProcessAtoms):
+
+    """
+    Node for performing spheric cutout around central atoms
+    from structures while keeping molecules intact
+    followed by a basic cell optimization.
+    """
 
     central_atom_indices: list[int] = zntrack.params(None)
     r_cutoff: float = zntrack.params(8.)
     seed: int = zntrack.params(1)
     threshold: float = zntrack.params(1.8)
     cell_opt_type: str = zntrack.params('cubic')
+    cutout: list[Atoms] = zntrack.outs()
 
     def __post_init__(self):
         np.random.seed(self.seed)
         if self.central_atom_indices is None:
             self.central_atom_indices = np.random.choice(len(self.get_data()))
 
+    def run(self):
+
+        cutouts = []
+
+        for i, structure in enumerate(self.get_data()):
+            
 
         
 
