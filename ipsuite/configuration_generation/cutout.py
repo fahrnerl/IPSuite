@@ -173,7 +173,7 @@ def merge(mol_list: list[ase.Atoms], structure: ase.Atoms, atom_index: int):
 
     return Atoms(new_structure)
 
-def cut(structure, central_atom_index, r_cutoff):
+def cut(structure: ase.Atoms, central_atom_index: int, r_cutoff: float):
     structure = center_wrap(structure, central_atom_index)
     mol_list = ase.build.separate(structure)
     cutout_molecules = []
@@ -187,6 +187,38 @@ def cut(structure, central_atom_index, r_cutoff):
     structure = merge(cutout_molecules, structure, central_atom_index)
 
     return structure
+
+def tetragonal_function_to_optimize(structure: ase.Atoms, cell_param: list[float], threshold: float):
+
+    structure.set_cell(cell_param)
+    structure.set_pbc([True, True, True])
+    structure.center()
+    
+    distances = structure.get_all_distances(mic=True)
+
+    result = np.sum(np.maximum([0], threshold - distances))
+
+    return result
+
+def cubic_function_to_optimize(structure: ase.Atoms, cell_param: float, threshold: float):
+
+    cell = np.array[cell_param, cell_param, cell_param]
+
+    return tetragonal_function_to_optimize(structure, cell, threshold)
+
+def initial_cell(structure: ase.Atoms):
+    
+    min = np.min(structure.get_positions(), axis=0)
+    max = np.max(structure.get_positions(), axis=0)
+    tetragonal = (max - min)/2
+    cubic = np.max(tetragonal)
+
+    return tetragonal, cubic
+
+def optimize_cell(func, starting_cell: list[float]):
+
+    opt = minimize(func, starting_cell, tol=1e-2)
+    return opt.get("x")
 
 class CutoutsFromStructures(ips.ProcessAtoms):
 
