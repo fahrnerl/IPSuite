@@ -34,12 +34,12 @@ class ThresholdSelection(ConfigurationSelection):
         minimum distance between selected configurations.
     """
 
-    key = zntrack.zn.params("energy_uncertainty")
-    reference = zntrack.zn.params("energy")
-    threshold = zntrack.zn.params(None)
-    n_configurations = zntrack.zn.params(None)
-    min_distance: int = zntrack.zn.params(1)
-    img_selection = zntrack.dvc.outs(zntrack.nwd / "selection.png")
+    key = zntrack.params("energy_uncertainty")
+    reference = zntrack.params("energy")
+    threshold = zntrack.params(None)
+    n_configurations = zntrack.params(None)
+    min_distance: int = zntrack.params(1)
+    img_selection = zntrack.outs(zntrack.nwd / "selection.png")
 
     def _post_init_(self):
         if self.threshold is None and self.n_configurations is None:
