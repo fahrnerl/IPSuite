@@ -108,7 +108,7 @@ class ThresholdSelection(ConfigurationSelection):
 
         fig.savefig(self.img_selection, bbox_inches="tight")
 
-class SingleAtomThresholdSelection(ConfigurationSelection):
+class SingleAtomThresholdSelection(ProcessAtoms):
     """Select single atom index per atoms object based on a given threshold.
 
     Attributes
@@ -119,8 +119,8 @@ class SingleAtomThresholdSelection(ConfigurationSelection):
         All values above (or below if negative) this threshold will be selected.
     """
 
-    key: str = zntrack.zn.params("force_uncertainty")
-    threshold: float = zntrack.zn.params(None)
+    key: str = zntrack.params("force_uncertainty")
+    threshold: float = zntrack.params(None)
 
     def _post_init_(self):
         return super()._post_init_()

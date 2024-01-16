@@ -5,6 +5,7 @@ import ase
 import numpy as np
 import zntrack
 from scipy.optimize import minimize
+import fields
 
 
 class CutoutFromStructure(ips.base.ProcessSingleAtom):
@@ -294,7 +295,7 @@ class CutoutsFromStructures(ips.ProcessAtoms):
     
         np.random.seed(self.seed)
         if self.central_atom_indices is None:
-            self.central_atom_indices = np.random.choice(len(self.get_data()))
+            self.central_atom_indices = [np.random.randint(len(atoms)) for atoms in self.get_data()]
         elif len(self.get_data()) != len(self.central_atom_indices):
             raise ValueError("central_atom_indices and data have to be of the same length")
 
