@@ -1,11 +1,11 @@
 """Selecting atoms with a given step between them."""
 import typing
+from ipsuite import base
 
 import ase
 import matplotlib.pyplot as plt
 import numpy as np
 import zntrack
-import ProcessAtoms
 
 from ipsuite.analysis.ensemble import plot_with_uncertainty
 from ipsuite.configuration_selection import ConfigurationSelection
@@ -109,7 +109,7 @@ class ThresholdSelection(ConfigurationSelection):
 
         fig.savefig(self.img_selection, bbox_inches="tight")
 
-class SingleAtomThresholdSelection(ProcessAtoms):
+class SingleAtomThresholdSelection(base.ProcessAtoms):
     """Select single atom index per atoms object based on a given threshold.
 
     Attributes
