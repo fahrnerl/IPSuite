@@ -5,6 +5,7 @@ import ase
 import matplotlib.pyplot as plt
 import numpy as np
 import zntrack
+import ProcessAtoms
 
 from ipsuite.analysis.ensemble import plot_with_uncertainty
 from ipsuite.configuration_selection import ConfigurationSelection
@@ -64,11 +65,11 @@ class ThresholdSelection(ConfigurationSelection):
             if self.threshold < 0:
                 indices = np.where(values < self.threshold)[0]
                 if self.n_configurations is not None:
-                    indices = np.argsort(values)[indices]
+                    indices = np.argsort(values)
             else:
                 indices = np.where(values > self.threshold)[0]
                 if self.n_configurations is not None:
-                    indices = np.argsort(values)[::-1][indices]
+                    indices = np.argsort(values)[::-1]
         else:
             if np.mean(values) > 0:
                 indices = np.argsort(values)[::-1]
