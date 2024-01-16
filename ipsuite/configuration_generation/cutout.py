@@ -268,8 +268,8 @@ class CutoutsFromStructures(ips.ProcessAtoms):
     
     Attributes
     ----------
-    central_atom_index: int
-        Index of atom that is the center of the spheric cutout.
+    central_atom_index: list[int]
+        Indices of atoms that are the center of the spheric cutout.
     r_cutoff: float
         Radius of the sphere.
     seed: int
