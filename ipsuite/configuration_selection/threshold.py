@@ -123,10 +123,7 @@ class SingleAtomThresholdSelection(base.ProcessAtoms):
     key: str = zntrack.params("force_uncertainty")
     threshold: float = zntrack.params(None)
 
-    def _post_init_(self):
-        return super()._post_init_()
-
-    def select_atoms(self, atoms_lst: typing.List[ase.Atoms]) -> typing.List[int]:
+    def select_atoms(self) -> list[int]:
         """Take a single atom index per atoms object of a given atoms list.
 
         Parameters
