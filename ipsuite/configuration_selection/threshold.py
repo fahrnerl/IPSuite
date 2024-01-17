@@ -116,12 +116,10 @@ class SingleAtomThresholdSelection(base.ProcessAtoms):
     ----------
     key: str
         The key in 'calc.results' to select from.
-    threshold: float, optional
-        All values above (or below if negative) this threshold will be selected.
     """
 
     key: str = zntrack.params("force_uncertainty")
-    threshold: float = zntrack.params(None)
+    selected_indices: list = zntrack.outs()
 
     def select_atoms(self) -> list[int]:
         """Take a single atom index per atoms object of a given atoms list.
@@ -136,29 +134,15 @@ class SingleAtomThresholdSelection(base.ProcessAtoms):
         typing.List[int]:
             List containing the taken indices.
         """
-        for atoms in atoms_lst:
+
+        indices = []
+
+        for atoms in self.get_data():
             values = np.array(atoms.calc.results[self.key])
-            if self.threshold is not None:
-                if self.threshold < 0:
-                    indices = np.where(values < self.threshold)[0]
-                    if self.n_configurations is not None:
-                        indices = np.argsort(values)[indices]
-                else:
-                    indices = np.where(values > self.threshold)[0]
-                    if self.n_configurations is not None:
-                        indices = np.argsort(values)[::-1][indices]
-            else:
-                if np.mean(values) > 0:
-                    indices = np.argsort(values)[::-1]
-                else:
-                    indices = np.argsort(values)
+            index = np.argmax(values)
+            indices.append(index)
 
-            selected = []
-            for val in indices:
-                # If the value is close to any of the already selected values, skip it.
-                if not any(np.abs(val - np.array(selected)) < self.min_distance):
-                    selected.append(val)
-                if len(selected) == self.n_configurations:
-                    break
-
-        return selected
+        return indices
+    
+    def run(self):
+        selected_indices = self.select_atoms()
