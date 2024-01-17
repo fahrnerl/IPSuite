@@ -271,6 +271,7 @@ class CutoutsFromStructures(ips.ProcessAtoms):
     ----------
     central_atom_index: list[int]
         Indices of atoms that are the center of the spheric cutout.
+        If None index is chosen randomly.
     r_cutoff: float
         Radius of the sphere.
     seed: int
