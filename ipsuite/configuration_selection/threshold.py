@@ -145,4 +145,4 @@ class SingleAtomThresholdSelection(base.ProcessAtoms):
         return indices
     
     def run(self):
-        selected_indices = self.select_atoms()
+        self.selected_indices = self.select_atoms()
