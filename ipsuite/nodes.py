@@ -26,7 +26,7 @@ class _Nodes:
     )
     UniformTemporalSelection = "ipsuite.configuration_selection.UniformTemporalSelection"
     ThresholdSelection = "ipsuite.configuration_selection.ThresholdSelection"
-    SingleAtomThresholdSelection = "ipsuite.configuration.SingleAtomThresholdSelection"
+    SingleAtomThresholdSelection = "ipsuite.configuration_selection.SingleAtomThresholdSelection"
     FilterOutlier = "ipsuite.configuration_selection.FilterOutlier"
     BatchKernelSelection = "ipsuite.models.apax.BatchKernelSelection"
 
