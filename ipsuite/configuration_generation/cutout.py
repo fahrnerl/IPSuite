@@ -5,7 +5,7 @@ import ase
 import numpy as np
 import zntrack
 from scipy.optimize import minimize
-import fields
+from ips import fields
 
 
 # class CutoutFromStructure(ips.base.ProcessSingleAtom):
@@ -290,7 +290,6 @@ class CutoutsFromStructures(ips.ProcessAtoms):
     seed: int = zntrack.params(1)
     threshold: float = zntrack.params(1.8)
     cell_opt_type: str = zntrack.params('cubic')
-    atoms: list[ase.Atoms] = fields.Atoms()
 
     def __post_init__(self):
     
