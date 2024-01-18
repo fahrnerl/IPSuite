@@ -39,6 +39,7 @@ class _Nodes:
     MultiPackmol = "ipsuite.configuration_generation.MultiPackmol"
     SmilesToAtoms = "ipsuite.configuration_generation.SmilesToAtoms"
     SmilesToConformers = "ipsuite.configuration_generation.SmilesToConformers"
+    CutoutFromStructure = "ipsuite.configuration_generation.CutoutFromStructure"
     CutoutsFromStructures = "ipsuite.configuration_generation.CutoutsFromStructures"
 
     # Data
