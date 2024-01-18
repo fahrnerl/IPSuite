@@ -290,7 +290,7 @@ class CutoutsFromStructures(ips.base.ProcessAtoms):
     cell_opt_type: str = zntrack.params('cubic')
 
     def __post_init__(self):
-    
+
         np.random.seed(self.seed)
         if self.central_atom_indices is None:
             self.central_atom_indices = [np.random.randint(len(atoms)) for atoms in self.get_data()]
