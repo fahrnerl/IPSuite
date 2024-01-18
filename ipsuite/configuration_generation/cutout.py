@@ -5,7 +5,6 @@ import ase
 import numpy as np
 import zntrack
 from scipy.optimize import minimize
-from ips import fields
 
 
 # class CutoutFromStructure(ips.base.ProcessSingleAtom):
@@ -282,7 +281,6 @@ class CutoutsFromStructures(ips.ProcessAtoms):
         Method for cell optimization. Either cubic or tetragonal.
     atoms: list[ase.Atoms]
         The processed atoms data. This is an output of the Node.
-        It does not have to be 'field.Atoms' but can also be e.g. a 'property'.
     """
 
     central_atom_indices: list[int] = zntrack.params(None)
