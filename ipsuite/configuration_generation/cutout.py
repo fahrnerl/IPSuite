@@ -230,7 +230,7 @@ def tetragonal_function_to_optimize(cell_param: np.ndarray[float], structure: as
 
 def cubic_function_to_optimize(cell_param: float, *args) -> float:
 
-    cell = np.array([cell_param, cell_param, cell_param])
+    cell = np.full(3, cell_param)
 
     return tetragonal_function_to_optimize(cell, *args)
 
@@ -292,12 +292,17 @@ class CutoutsFromStructures(ips.base.ProcessAtoms):
     def __post_init__(self):
 
         np.random.seed(self.seed)
+        # if self.central_atom_indices is None:
+        #     self.central_atom_indices = [np.random.randint(len(atoms)) for atoms in self.get_data()]
+        # elif len(self.get_data()) != len(self.central_atom_indices):
+        #     raise ValueError("central_atom_indices and data have to be of the same length")
+
+    def run(self):
+
         if self.central_atom_indices is None:
             self.central_atom_indices = [np.random.randint(len(atoms)) for atoms in self.get_data()]
         elif len(self.get_data()) != len(self.central_atom_indices):
             raise ValueError("central_atom_indices and data have to be of the same length")
-
-    def run(self):
 
         cutouts = []
 
