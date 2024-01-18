@@ -259,7 +259,7 @@ def optimize_cell(func, starting_cell: list[float], args: tuple, **kwargs) -> np
     opt = minimize(func, starting_cell, tol=1e-2, args=args **kwargs)
     return opt.get("x")
 
-class CutoutsFromStructures(ips.ProcessAtoms):
+class CutoutsFromStructures(ips.base.ProcessAtoms):
 
     """
     Node for performing spheric cutout around central atoms
