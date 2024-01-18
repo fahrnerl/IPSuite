@@ -8,7 +8,7 @@ import zntrack
 from scipy.optimize import minimize
 
 
-class CutoutFromStructure(ips.base.ProcessSingleAtom):
+class CutoutFromStructure(base.ProcessSingleAtom):
 
     """
     Node for performing spheric cutout of a system while
