@@ -1,5 +1,6 @@
 import ipsuite as ips
 from ase import Atoms
+from ase.build import separate
 import ase.units
 import ase
 import numpy as np
@@ -197,7 +198,7 @@ def cut(structure: ase.Atoms, central_atom_index: int, r_cutoff: float) -> ase.A
     """
 
     structure = center_wrap(structure, central_atom_index)
-    mol_list = ase.build.separate(structure)
+    mol_list = separate(structure)
     cutout_molecules = []
 
     for molecule in mol_list:
