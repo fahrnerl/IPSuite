@@ -118,7 +118,7 @@ class SingleAtomThresholdSelection(base.ProcessAtoms):
         The key in 'calc.results' to select from.
     """
 
-    key: str = zntrack.params("force_uncertainty")
+    key: str = zntrack.params("forces_uncertainty")
     selected_indices: list[int] = zntrack.outs()
 
     def select_atoms(self) -> list[int]:
