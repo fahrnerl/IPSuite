@@ -250,7 +250,7 @@ def initial_cell(structure: ase.Atoms) -> np.ndarray[np.ndarray, float]:
     return tetragonal, cubic
 
 # really needed?
-def optimize_cell(func, starting_cell: list[float], args: tuple, **kwargs) -> np.ndarray:
+def cell_size_correction(func, starting_cell: list[float], args: tuple, **kwargs) -> np.ndarray:
 
     """
     Optimizes function and returns
@@ -278,8 +278,8 @@ class CutoutsFromStructures(base.ProcessAtoms):
         Seed value.
     threshhold: float
         Minimal distance(mic) for cell optimization.
-    cell_opt_type: str
-        Method for cell optimization. Either cubic or tetragonal.
+    cell_size_correction_type: str
+        Method for cell size correction. Either cubic or tetragonal.
     atoms: list[ase.Atoms]
         The processed atoms data. This is an output of the Node.
     """
@@ -288,7 +288,7 @@ class CutoutsFromStructures(base.ProcessAtoms):
     r_cutoff: float = zntrack.params(8.)
     seed: int = zntrack.params(1)
     threshold: float = zntrack.params(1.8)
-    cell_opt_type: str = zntrack.params("cubic")
+    cell_size_correction_type: str = zntrack.params("cubic")
 
     def __post_init__(self):
 
@@ -310,12 +310,12 @@ class CutoutsFromStructures(base.ProcessAtoms):
         for i, structure in enumerate(self.get_data()):
             cutout = cut(structure, self.central_atom_indices[i], self.r_cutoff)
 
-            if self.cell_opt_type == "cubic":
+            if self.cell_size_correction_type == "cubic":
                 opt = minimize(cubic_function_to_optimize, initial_cell(cutout)[1], (cutout, self.threshold), tol=1e-2)
                 cutout.set_cell(np.full(3, opt.get("x")[0]))
                 cutout.set_pbc([True, True, True])
 
-            elif self.cell_opt_type == "tetragonal":
+            elif self.cell_size_correction_type == "tetragonal":
                 # opt = minimize(tetragonal_function_to_optimize, initial_cell(cutout)[0], (cutout, self.threshold), tol=1e-2)
                 # cutout.set_cell(opt.get("x")[0])
                 # cutout.set_pbc([True, True, True])
