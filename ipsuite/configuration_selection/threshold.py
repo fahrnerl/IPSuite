@@ -1,11 +1,13 @@
 """Selecting atoms with a given step between them."""
 import typing
 from ipsuite import base
+from ipsuite import fields
 
 import ase
 import matplotlib.pyplot as plt
 import numpy as np
 import zntrack
+from ipsuite.utils import combine
 
 from ipsuite.analysis.ensemble import plot_with_uncertainty
 from ipsuite.configuration_selection import ConfigurationSelection
@@ -119,15 +121,10 @@ class SingleAtomThresholdSelection(base.ProcessAtoms):
     """
 
     key: str = zntrack.params("forces_uncertainty")
-    selected_indices: list[int] = zntrack.outs()
+    selected_indices: typing.Dict[str, typing.List[int]] = zntrack.outs()
 
-    def select_atoms(self) -> list[int]:
+    def select_atoms(self, data) -> list[int]:
         """Take a single atom index per atoms object of a given atoms list.
-
-        Parameters
-        ----------
-        atoms_lst: typing.List[ase.Atoms]
-            List of atoms objects to select single atoms from.
 
         Returns
         -------
@@ -137,7 +134,7 @@ class SingleAtomThresholdSelection(base.ProcessAtoms):
 
         indices = []
 
-        for atoms in self.get_data():
+        for atoms in data:
             values = np.array(atoms.calc.results[self.key])
             index = np.argmax(values)
             indices.append(index)
@@ -145,4 +142,7 @@ class SingleAtomThresholdSelection(base.ProcessAtoms):
         return indices
     
     def run(self):
-        self.selected_indices = self.select_atoms()
+
+        data = self.get_data()
+        self.selected_indices = [int(i) for i in self.select_atoms(data)]
+        self.atoms = data
