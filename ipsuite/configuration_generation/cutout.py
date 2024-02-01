@@ -277,7 +277,7 @@ class CutoutsFromStructures(base.ProcessAtoms):
     seed: int
         Seed value.
     threshhold: float
-        Minimal distance(mic) for cell optimization.
+        Minimal distance(mic) for cell size correction.
     cell_size_correction_type: str
         Method for cell size correction. Either cubic or tetragonal.
     atoms: list[ase.Atoms]
