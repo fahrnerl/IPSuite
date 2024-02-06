@@ -136,6 +136,8 @@ class SingleAtomThresholdSelection(base.ProcessAtoms):
 
         for atoms in data:
             values = np.array(atoms.calc.results[self.key])
+            if "forces" in self.key:
+                values = np.linalg.norm(values, axis=1)
             index = np.argmax(values)
             indices.append(index)
 

@@ -6,6 +6,7 @@ import ase
 import numpy as np
 import zntrack
 from scipy.optimize import minimize
+from tqdm import tqdm
 
 
 class CutoutFromStructure(base.ProcessSingleAtom):
@@ -284,7 +285,7 @@ class CutoutsFromStructures(base.ProcessAtoms):
         The processed atoms data. This is an output of the Node.
     """
 
-    central_atom_indices: list[int] = zntrack.params(None)
+    central_atom_indices: list[int] = zntrack.deps(None)
     r_cutoff: float = zntrack.params(8.)
     seed: int = zntrack.params(1)
     threshold: float = zntrack.params(1.8)
@@ -302,12 +303,14 @@ class CutoutsFromStructures(base.ProcessAtoms):
 
         if self.central_atom_indices is None:
             self.central_atom_indices = [np.random.randint(len(atoms)) for atoms in self.get_data()]
-        elif len(self.get_data()) != len(self.central_atom_indices):
+        else:
+            self.central_atom_indices = self.central_atom_indices.selected_indices
+        if len(self.get_data()) != len(self.central_atom_indices):
             raise ValueError("central_atom_indices and data have to be of the same length")
 
         cutouts = []
 
-        for i, structure in enumerate(self.get_data()):
+        for i, structure in enumerate(tqdm(self.get_data())):
             cutout = cut(structure, self.central_atom_indices[i], self.r_cutoff)
 
             if self.cell_size_correction_type == "cubic":
