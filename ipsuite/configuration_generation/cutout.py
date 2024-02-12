@@ -321,9 +321,6 @@ class CutoutsFromStructures(base.ProcessAtoms):
     sensitivity: float = zntrack.params(0.1)
     cell_size_correction_type: str = zntrack.params("cubic")
 
-    def __post_init__(self):
-        pass
-
     def run(self):
         np.random.seed(self.seed)
         if self.central_atom_indices is None:
