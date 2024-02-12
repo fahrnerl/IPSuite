@@ -212,54 +212,74 @@ def cut(structure: ase.Atoms, central_atom_index: int, r_cutoff: float) -> ase.A
 
     return structure
 
-def tetragonal_function_to_optimize(cell_param: np.ndarray[float], structure: ase.Atoms, threshold: float) -> float:
+class ObjectiveFunction:
 
     """
-    Function for optimization where threshold
+    Class for cell size correction that returns
+    objective function where threshold
     defines minimum distance atoms should
     have to atoms of the neighbouring cells.
     """
 
-    structure.set_cell(cell_param)
-    structure.set_pbc([True, True, True])
-    structure.center()
-    
-    distances = structure.get_all_distances(mic=True)
+    def __init__(self, structure, threshold) -> None:
+        self.structure: ase.Atoms = structure.copy()
+        self.threshold: float = threshold
 
-    result = np.sum(np.maximum([0], threshold - distances))
+    def __call__(self, cell_param):
 
-    return result
+        if len(cell_param) == 1:
+            cell_param = np.array([cell_param[0], cell_param[0], cell_param[0]])
 
-def cubic_function_to_optimize(cell_param: float, *args) -> float:
+        self.structure.set_cell(cell_param)
+        self.structure.set_pbc([True, True, True])
+        self.structure.center()
+        
+        distances = self.structure.get_all_distances(mic=True)
 
-    cell = np.full(3, cell_param)
+        result = np.sum(np.maximum([0], self.threshold - distances))
 
-    return tetragonal_function_to_optimize(cell, *args)
+        return result
 
-def initial_cell(structure: ase.Atoms) -> np.ndarray[np.ndarray, float]:
+def initial_cell(structure: ase.Atoms) -> np.ndarray[float]:
     
     """
     Returns tetragonal and cubic cell
-    for initial guess of optimizer.
+    for initial guess.
     """
 
     min = np.min(structure.get_positions(), axis=0)
     max = np.max(structure.get_positions(), axis=0)
-    tetragonal = (max - min)/2
-    cubic = np.max(tetragonal)
+    tetragonal = (max - min)
+    cubic = np.array([np.max(tetragonal)])
 
     return tetragonal, cubic
 
-# really needed?
-def cell_size_correction(func, starting_cell: list[float], args: tuple, **kwargs) -> np.ndarray:
+def cell_size_correction(structure: ase.Atoms, obj_func=None, threshold=1.8, type=1, step_size=0.05, sensitivity=0.1) -> np.ndarray[float]:
 
     """
-    Optimizes function and returns
-    optimized cell parameters.
+    Decreases cell size in one or three
+    dimensions until gradient of objective
+    function increases.
     """
 
-    opt = minimize(func, starting_cell, tol=1e-2, args=args **kwargs)
-    return opt.get("x")
+    if obj_func == None:
+        obj_func = ObjectiveFunction(structure, threshold)
+
+    cell = initial_cell(structure)[type]+threshold
+
+    for axis in range(len(cell)):
+
+        cell_x = cell.copy()
+        cell_x[axis] -= step_size
+        gradient = (obj_func(cell_x) - obj_func(cell))/step_size
+
+        while gradient <= sensitivity:
+
+            cell = cell_x.copy()
+            cell_x[axis] -= step_size
+            gradient = (obj_func(cell_x) - obj_func(cell))/step_size
+
+    return cell
 
 class CutoutsFromStructures(base.ProcessAtoms):
 
@@ -279,6 +299,13 @@ class CutoutsFromStructures(base.ProcessAtoms):
         Seed value.
     threshhold: float
         Minimal distance(mic) for cell size correction.
+    obj_func: function
+        Objective Function for cell size correction.
+        Has to take cell parameters as input.
+    step_size: float
+        Increments while decreasing cell size.
+    sensitivity: float
+        Termination criterion for cell size correction.
     cell_size_correction_type: str
         Method for cell size correction. Either cubic or tetragonal.
     atoms: list[ase.Atoms]
@@ -289,18 +316,16 @@ class CutoutsFromStructures(base.ProcessAtoms):
     r_cutoff: float = zntrack.params(8.)
     seed: int = zntrack.params(1)
     threshold: float = zntrack.params(1.8)
+    obj_func = zntrack.params(None)
+    step_size: float = zntrack.params(0.05)
+    sensitivity: float = zntrack.params(0.1)
     cell_size_correction_type: str = zntrack.params("cubic")
 
     def __post_init__(self):
-
-        np.random.seed(self.seed)
-        # if self.central_atom_indices is None:
-        #     self.central_atom_indices = [np.random.randint(len(atoms)) for atoms in self.get_data()]
-        # elif len(self.get_data()) != len(self.central_atom_indices):
-        #     raise ValueError("central_atom_indices and data have to be of the same length")
+        pass
 
     def run(self):
-
+        np.random.seed(self.seed)
         if self.central_atom_indices is None:
             self.central_atom_indices = [np.random.randint(len(atoms)) for atoms in self.get_data()]
         else:
@@ -308,21 +333,21 @@ class CutoutsFromStructures(base.ProcessAtoms):
         if len(self.get_data()) != len(self.central_atom_indices):
             raise ValueError("central_atom_indices and data have to be of the same length")
 
+        print(self.central_atom_indices)
         cutouts = []
 
         for i, structure in enumerate(tqdm(self.get_data())):
             cutout = cut(structure, self.central_atom_indices[i], self.r_cutoff)
 
             if self.cell_size_correction_type == "cubic":
-                opt = minimize(cubic_function_to_optimize, initial_cell(cutout)[1], (cutout, self.threshold), tol=1e-2)
-                cutout.set_cell(np.full(3, opt.get("x")[0]))
+                x = cell_size_correction(structure, obj_func=self.obj_func, threshold=self.threshold, type=1, step_size=self.step_size, sensitivity=self.sensitivity)
+                cutout.set_cell(np.full(3, x[0]))
                 cutout.set_pbc([True, True, True])
 
             elif self.cell_size_correction_type == "tetragonal":
-                # opt = minimize(tetragonal_function_to_optimize, initial_cell(cutout)[0], (cutout, self.threshold), tol=1e-2)
-                # cutout.set_cell(opt.get("x")[0])
-                # cutout.set_pbc([True, True, True])
-                raise NotImplementedError("tetragonal optimization needs rework")
+                x = cell_size_correction(structure, obj_func=self.obj_func, threshold=self.threshold, type=0, step_size=self.step_size, sensitivity=self.sensitivity)
+                cutout.set_cell(x)
+                cutout.set_pbc([True, True, True])
 
             else:
                 raise NotImplementedError("string has to be 'cubic' or 'tetragonal'")
