@@ -330,7 +330,6 @@ class CutoutsFromStructures(base.ProcessAtoms):
         if len(self.get_data()) != len(self.central_atom_indices):
             raise ValueError("central_atom_indices and data have to be of the same length")
 
-        print(self.central_atom_indices)
         cutouts = []
 
         for i, structure in enumerate(tqdm(self.get_data())):
