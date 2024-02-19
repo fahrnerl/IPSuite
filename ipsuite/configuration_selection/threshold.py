@@ -62,7 +62,10 @@ class ThresholdSelection(ConfigurationSelection):
         typing.List[int]:
             list containing the taken indices
         """
-        values = np.array([atoms.calc.results[self.key] for atoms in atoms_lst])
+        if self.key == "forces_uncertainty":
+            values = np.array([np.max(np.linalg.norm(atoms.calc.results[self.key], axis=1)) for atoms in atoms_lst])
+        else:
+            values = np.array([atoms.calc.results[self.key] for atoms in atoms_lst])
         if self.threshold is not None:
             if self.threshold < 0:
                 indices = np.where(values < self.threshold)[0]
@@ -91,7 +94,10 @@ class ThresholdSelection(ConfigurationSelection):
         return selected
 
     def _get_plot(self, atoms_lst: typing.List[ase.Atoms], indices: typing.List[int]):
-        values = np.array([atoms.calc.results[self.key] for atoms in atoms_lst])
+        if self.key == "forces_uncertainty":
+            values = np.array([np.max(np.linalg.norm(atoms.calc.results[self.key], axis=1)) for atoms in atoms_lst])
+        else:
+            values = np.array([atoms.calc.results[self.key] for atoms in atoms_lst])
         if self.reference is not None:
             reference = np.array(
                 [atoms.calc.results[self.reference] for atoms in atoms_lst]
