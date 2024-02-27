@@ -336,12 +336,12 @@ class CutoutsFromStructures(base.ProcessAtoms):
             cutout = cut(structure, self.central_atom_indices[i], self.r_cutoff)
 
             if self.cell_size_correction_type == "cubic":
-                x = cell_size_correction(structure, obj_func=self.obj_func, threshold=self.threshold, type=1, step_size=self.step_size, sensitivity=self.sensitivity)
+                x = cell_size_correction(cutout, obj_func=self.obj_func, threshold=self.threshold, type=1, step_size=self.step_size, sensitivity=self.sensitivity)
                 cutout.set_cell(np.full(3, x[0]))
                 cutout.set_pbc([True, True, True])
 
             elif self.cell_size_correction_type == "tetragonal":
-                x = cell_size_correction(structure, obj_func=self.obj_func, threshold=self.threshold, type=0, step_size=self.step_size, sensitivity=self.sensitivity)
+                x = cell_size_correction(cutout, obj_func=self.obj_func, threshold=self.threshold, type=0, step_size=self.step_size, sensitivity=self.sensitivity)
                 cutout.set_cell(x)
                 cutout.set_pbc([True, True, True])
 
