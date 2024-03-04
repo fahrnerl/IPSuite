@@ -99,12 +99,18 @@ class ThresholdSelection(ConfigurationSelection):
         else:
             values = np.array([atoms.calc.results[self.key] for atoms in atoms_lst])
         if self.reference is not None:
-            reference = np.array(
-                [atoms.calc.results[self.reference] for atoms in atoms_lst]
-            )
+            if self.reference == "forces":
+                forces_indices = [np.argmax(np.linalg.norm(atoms.calc.results[self.key], axis=1)) for atoms in atoms_lst]
+                reference = np.array(
+                    [np.linalg.norm(atoms.calc.results[self.reference][forces_indices[i]]) for i, atoms in enumerate(atoms_lst)]
+                    )
+            else:
+                reference = np.array(
+                    [atoms.calc.results[self.reference] for atoms in atoms_lst]
+                    )
             fig, ax, _ = plot_with_uncertainty(
                 {"std": values, "mean": reference},
-                ylabel=self.key,
+                ylabel=self.reference,
                 xlabel="configuration",
             )
             ax.plot(indices, reference[indices], "x", color="red")
